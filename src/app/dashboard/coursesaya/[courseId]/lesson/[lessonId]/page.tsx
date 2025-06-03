@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { get } from '@/lib/api' // axios instance kamu
 import ReactPlayer from 'react-player'
+import Link from 'next/link'
 
 interface Lesson {
   id: number
@@ -56,14 +57,14 @@ export default function LessonPage() {
             <ul>
               {module.lessons.map((lesson) => (
                 <li key={lesson.id}>
-                  <a
-                    href={`/mycourse/${courseId}/lesson/${lesson.id}`}
+                  <Link
+                    href={`/dashboard/mycourse/${courseId}/lesson/${lesson.id}`}
                     className={`block px-2 py-1 rounded hover:bg-gray-200 ${
                       lesson.id === Number(lessonId) ? 'bg-blue-100 font-semibold' : ''
                     }`}
                   >
                     {lesson.title}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
