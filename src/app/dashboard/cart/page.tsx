@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { get, del } from '@/lib/api'
+import { get, del, post } from '@/lib/api'
 import { toast } from 'sonner'
 
 interface Course {
@@ -73,30 +73,23 @@ const removeItem = async (cartId: number) => {
 }
 
 
-  const handleCheckout = async () => {
-    const courseIds = cartCourses.map(course => course.id)
-    try {
-      const res = await fetch('/api/order/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ courseIds }),
-      })
+const handleCheckout = async () => {
+  const courseIds = cartCourses.map(course => course.id)
+  try {
+    const res = await post('/api/order/checkout', { courseIds }, token!)
 
-      const data = await res.json()
-      if (data.redirectUrl) {
-        toast.success('Mengalihkan ke pembayaran...')
-        window.location.href = data.redirectUrl
-      } else {
-        toast.error('Checkout gagal.')
-      }
-    } catch (error) {
-      console.error('Checkout error:', error)
-      toast.error('Terjadi kesalahan saat checkout.')
+    if (res.redirectUrl) {
+      toast.success('Mengalihkan ke pembayaran...')
+      window.location.href = res.redirectUrl
+    } else {
+      toast.error('Checkout gagal.')
     }
+  } catch (error) {
+    console.error('Checkout error:', error)
+    toast.error('Terjadi kesalahan saat checkout.')
   }
+}
+
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
