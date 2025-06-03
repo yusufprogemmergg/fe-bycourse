@@ -34,7 +34,7 @@ interface Course {
 export default function CourseDetailPage() {
   const [course, setCourse] = useState<Course | null>(null)
   const params = useParams()
-  const courseId = params?.id as string
+  const courseId = params?.courseId as string
 
   useEffect(() => {
     const fetchData = async () => {
