@@ -20,7 +20,7 @@ export default function MyCoursesPage() {
   useEffect(() => {
     const fetchCourses = async () => {
       const token = localStorage.getItem("token");
-      const res = await get("/purchased-courses", token || "");
+      const res = await get("/mycourse", token || "");
       if (Array.isArray(res)) {
         setCourses(res);
       }
@@ -31,7 +31,7 @@ export default function MyCoursesPage() {
   }, []);
 
   const handleStartCourse = (id: number) => {
-    router.push(`/my-courses/${id}`);
+    router.push(`/coursesaya/${id}`);
   };
 
   if (loading) return <div className="text-center mt-10">Memuat data...</div>;
