@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { get } from '@/lib/api'
+import { get, del } from '@/lib/api'
 import { toast } from 'sonner'
 
 interface Course {
@@ -57,25 +57,21 @@ export default function CartPage() {
     }
   }
 
-  const removeItem = async (cartId: number) => {
-    try {
-      const res = await fetch(`/api/cart-wishlist/cart/item/${cartId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+const removeItem = async (cartId: number) => {
+  try {
+    const res = await del(`/cart-wishlist/cart/item/${cartId}`, token!)
 
-      if (res.ok) {
-        setCartCourses(prev => prev.filter(item => item.cartId !== cartId))
-        toast.success('Item dihapus dari cart.')
-      } else {
-        toast.error('Gagal menghapus item.')
-      }
-    } catch {
-      toast.error('Terjadi kesalahan saat menghapus item.')
+    if (res?.message === 'Item berhasil dihapus dari cart.') {
+      setCartCourses(prev => prev.filter(item => item.cartId !== cartId))
+      toast.success('Item dihapus dari cart.')
+    } else {
+      toast.error('Gagal menghapus item.')
     }
+  } catch {
+    toast.error('Terjadi kesalahan saat menghapus item.')
   }
+}
+
 
   const handleCheckout = async () => {
     const courseIds = cartCourses.map(course => course.id)
