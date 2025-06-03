@@ -58,7 +58,7 @@ export default function LessonPage() {
               {module.lessons.map((lesson) => (
                 <li key={lesson.id}>
                   <Link
-                    href={`/dashboard/mycourse/${courseId}/lesson/${lesson.id}`}
+                    href={`/dashboard/coursesaya/${courseId}/lesson/${lesson.id}`}
                     className={`block px-2 py-1 rounded hover:bg-gray-200 ${
                       lesson.id === Number(lessonId) ? 'bg-blue-100 font-semibold' : ''
                     }`}
