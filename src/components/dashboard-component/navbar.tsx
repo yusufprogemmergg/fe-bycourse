@@ -66,13 +66,19 @@ useEffect(() => {
 
         <Link href={'/dashboard/cart'}>
         <button className="text-gray-600 hover:text-blue-600 transition">
-          <FaChartBar size={20} />
+          <CiShoppingCart size={20} />
         </button>
         </Link>
 
         <Link href={'/dashboard/mycourse'}>
         <button className="text-gray-600 hover:text-blue-600 transition">
-          <CiShoppingCart size={20} />
+          <FaChartBar size={20} />
+        </button>
+        </Link>
+
+        <Link href={'/dashboard/coursesaya'}>
+        <button className="text-gray-600 hover:text-blue-600 transition">
+          courses saya
         </button>
         </Link>
 
