@@ -78,7 +78,7 @@ export default function CourseDetailPage() {
                 <ul className="space-y-2 pl-4">
                   {module.lessons.map((lesson) => (
                     <li key={lesson.id}>
-                    <Link href={`/dashboard/coursesaya/lesson/${lesson.id}`} className="text-blue-600 hover:underline">
+                    <Link href={`/dashboard/coursesaya/${courseId}/lesson/${lesson.id}`} className="text-blue-600 hover:underline">
                       <p className="font-medium">{lesson.position}. {lesson.title}</p>
                     </Link>
                     </li>
