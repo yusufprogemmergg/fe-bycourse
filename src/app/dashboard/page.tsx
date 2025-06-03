@@ -32,17 +32,16 @@ export default function CourseMarketplace() {
   }, [])
 
   useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await get('/course/get/available', token!)
+        setCourses(res || [])
+      } catch {
+        toast.error('Failed to fetch courses')
+      }
+    }
     if (token) fetchCourses()
   }, [token])
-
-  const fetchCourses = async () => {
-    try {
-      const res = await get('/course/get/available', token!)
-      setCourses(res || [])
-    } catch {
-      toast.error('Failed to fetch courses')
-    }
-  }
 
   const addToCart = async (courseId: number) => {
     const res = await post('/cart-wishlist/cart', { courseId }, token!)

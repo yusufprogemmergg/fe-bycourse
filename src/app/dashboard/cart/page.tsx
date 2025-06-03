@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { get, post } from '@/lib/api'
+import { get } from '@/lib/api'
 import { toast } from 'sonner'
 
 interface Course {
+  cartId: number
   id: number
   title: string
   price: number
@@ -26,8 +27,8 @@ export default function CartPage() {
     try {
       const res = await get('/cart-wishlist/cart', token)
 
-      // Adapt response if needed
       interface CartItem {
+        id: number // cart.id
         course: {
           id: number
           title: string
@@ -38,8 +39,9 @@ export default function CartPage() {
 
       const courses = res?.cartItems?.map((item: CartItem) => {
         const course = item.course
-        const finalPrice = course.price - (course.price * course.discount) / 100
+        const finalPrice = Math.round(course.price - (course.price * course.discount) / 100)
         return {
+          cartId: item.id,
           id: course.id,
           title: course.title,
           price: course.price,
@@ -55,13 +57,42 @@ export default function CartPage() {
     }
   }
 
+  const removeItem = async (cartId: number) => {
+    try {
+      const res = await fetch(`/api/cart-wishlist/cart/item/${cartId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (res.ok) {
+        setCartCourses(prev => prev.filter(item => item.cartId !== cartId))
+        toast.success('Item dihapus dari cart.')
+      } else {
+        toast.error('Gagal menghapus item.')
+      }
+    } catch {
+      toast.error('Terjadi kesalahan saat menghapus item.')
+    }
+  }
+
   const handleCheckout = async () => {
     const courseIds = cartCourses.map(course => course.id)
     try {
-      const res = await post('/order/checkout', { courseIds }, token!)
-      if (res?.redirectUrl) {
+      const res = await fetch('/api/order/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ courseIds }),
+      })
+
+      const data = await res.json()
+      if (data.redirectUrl) {
         toast.success('Mengalihkan ke pembayaran...')
-        window.location.href = res.redirectUrl
+        window.location.href = data.redirectUrl
       } else {
         toast.error('Checkout gagal.')
       }
@@ -80,13 +111,21 @@ export default function CartPage() {
         <>
           <ul className="mb-4">
             {cartCourses.map(course => (
-              <li key={course.id} className="mb-4 p-4 border rounded-md shadow-sm">
+              <li key={course.cartId} className="mb-4 p-4 border rounded-md shadow-sm">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-medium">{course.title}</span>
                   <div className="text-right">
                     <p className="text-sm text-gray-500 line-through">Rp{course.price.toLocaleString()}</p>
                     <p className="text-lg font-bold text-blue-600">Rp{course.finalPrice.toLocaleString()}</p>
                   </div>
+                </div>
+                <div className="mt-2 text-right">
+                  <button
+                    onClick={() => removeItem(course.cartId)}
+                    className="text-sm text-red-600 hover:underline"
+                  >
+                    Hapus
+                  </button>
                 </div>
               </li>
             ))}
