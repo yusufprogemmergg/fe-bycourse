@@ -1,104 +1,118 @@
-'use client';
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as Yup from "yup";
-import { useState } from "react";
-import axios from "axios";
+'use client'
 
-// Bentuk data untuk form
-type ProfileForm = {
-  bio: string;
-  address: string;
-  avatar: FileList;
-};
+import { useEffect, useState } from 'react'
+import { get, post } from '@/lib/api'
+import { toast } from 'sonner'
+import Link from 'next/link'
+import Image from 'next/image'
 
-// Tipe respons dari server (bisa disesuaikan dengan respons backend kamu)
-type ProfileResponse = {
-  message: string;
-  profile: {
-    id: string;
-    bio: string;
-    avatarUrl: string;
-    address: string;
-    userId: string;
-  };
-};
+interface Course {
+  id: number
+  title: string
+  description: string
+  image: string
+  price: number
+  discount: number
+  finalPrice: number
+  category: {
+    id: number
+    name: string
+  }
+}
 
-export default function CreateProfilePage() {
-  const router = useRouter();
-  const [message, setMessage] = useState("");
+export default function CourseMarketplace() {
+  const [courses, setCourses] = useState<Course[]>([])
+  const [token, setToken] = useState<string | null>(null)
 
-  const schema: Yup.ObjectSchema<ProfileForm> = Yup.object({
-    bio: Yup.string().required("Bio wajib diisi"),
-    address: Yup.string().required("Alamat wajib diisi"),
-    avatar: Yup.mixed<FileList>()
-      .required("Avatar wajib diunggah")
-      .test("fileExist", "File wajib dipilih", (value) => value instanceof FileList && value.length > 0),
-  });
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<ProfileForm>({
-    resolver: yupResolver(schema),
-  });
-
-  const onSubmit = async (data: ProfileForm) => {
-    const formData = new FormData();
-    formData.append("file", data.avatar[0]);
-
-    try {
-      // Upload file
-      const uploadRes = await axios.post<{ url: string }>("/api/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      const avatarUrl = uploadRes.data.url;
-
-      // Kirim data profil
-      const profileRes = await axios.post<ProfileResponse>(
-        "/api/profile",
-        { bio: data.bio, address: data.address, avatarUrl },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      setMessage(profileRes.data.message);
-      setTimeout(() => router.push("/dashboard"), 3000);
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        setMessage(error.response.data?.message || "Terjadi kesalahan saat membuat profil.");
-      } else {
-        setMessage("Terjadi kesalahan yang tidak diketahui.");
-      }
-      console.error(error);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('token')
+      setToken(storedToken)
     }
-  };
+  }, [])
+
+  useEffect(() => {
+    if (token) fetchCourses()
+  }, [token])
+
+  const fetchCourses = async () => {
+    try {
+      const res = await get('/course/get/available', token!)
+      setCourses(res || [])
+    } catch {
+      toast.error('Failed to fetch courses')
+    }
+  }
+
+  const addToCart = async (courseId: number) => {
+    const res = await post('/cart-wishlist/cart', { courseId }, token!)
+    if (res) toast.success('Added to cart!')
+    else toast.error('Failed to add to cart')
+  }
+
+  const addToWishlist = async (courseId: number) => {
+    const res = await post('/cart-wishlist/wishlist', { courseId }, token!)
+    if (res) toast.success('Added to wishlist!')
+    else toast.error('Failed to add to wishlist')
+  }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto mt-10" encType="multipart/form-data">
-      <h1 className="text-2xl font-bold text-center mb-4">Buat Profil</h1>
+    <div className="max-w-7xl mx-auto px-4 py-10">
+      <h1 className="text-3xl font-bold mb-6">Explore Courses</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {courses.map(course => (
+          <div key={course.id} className="bg-white rounded-xl shadow p-4 flex flex-col">
+            <Link href={`/dashboard/course/${course.id}`}>
+              <Image
+                src={course.image}
+                alt="course image"
+                width={400}
+                height={200}
+                className="w-full h-[200px] object-cover rounded-md cursor-pointer"
+              />
+            </Link>
+            <h2 className="text-lg font-semibold mt-2">{course.title}</h2>
+            <p className="text-sm text-gray-500 mb-1">{course.category.name}</p>
 
-      <div>
-        <textarea {...register("bio")} placeholder="Bio" className="border p-2 w-full h-24" />
-        {errors.bio && <p className="text-red-500 text-sm">{errors.bio.message}</p>}
+            <div className="mb-4">
+              {course.finalPrice < course.price ? (
+                <>
+                  <p className="text-sm line-through text-gray-400">
+                    Rp{course.price.toLocaleString()}
+                  </p>
+                  <p className="text-md font-bold text-blue-600">
+                    Rp{course.finalPrice.toLocaleString()} ({course.discount}% OFF)
+                  </p>
+                </>
+              ) : (
+                <p className="text-md font-bold text-blue-600">
+                  Rp{course.price.toLocaleString()}
+                </p>
+              )}
+            </div>
+
+            <div className="mt-auto space-y-2">
+              <Link href={`/dashboard/course/${course.id}`}>
+                <button className="w-full px-4 py-2 bg-gray-100 text-sm rounded hover:bg-gray-200">
+                  View Details
+                </button>
+              </Link>
+              <button
+                onClick={() => addToCart(course.id)}
+                className="w-full px-4 py-2 bg-yellow-400 text-sm rounded hover:bg-yellow-500"
+              >
+                Add to Cart
+              </button>
+              <button
+                onClick={() => addToWishlist(course.id)}
+                className="w-full px-4 py-2 bg-pink-500 text-white text-sm rounded hover:bg-pink-600"
+              >
+                Wishlist
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
-      
-      <div>
-        <input type="file" {...register("avatar")} accept="image/*" className="border p-2 w-full" />
-        {errors.avatar && <p className="text-red-500 text-sm">{errors.avatar.message as string}</p>}
-      </div>
-
-      <button type="submit" disabled={isSubmitting} className="bg-green-600 text-white px-4 py-2 w-full">
-        {isSubmitting ? "Menyimpan..." : "Simpan Profil"}
-      </button>
-
-      {message && <p className="text-center text-blue-500 mt-4">{message}</p>}
-    </form>
-  );
+    </div>
+  )
 }

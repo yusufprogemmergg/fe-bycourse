@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Navbar from "@/components/dashboard-component/navbar";
 
 export const metadata: Metadata = {
   title: "dasboard - ByCourse",
@@ -12,6 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <div>
+      <Navbar />
         {children}
     </div>
   );

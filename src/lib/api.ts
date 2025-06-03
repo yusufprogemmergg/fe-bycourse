@@ -34,8 +34,6 @@ export async function post(url: string, data: unknown, token: string) {
     }
   }
 
-  
- 
 export async function put(url: string, data: unknown, token: string) {
   try {
     const res = await axiosInstance.put(url, data, {

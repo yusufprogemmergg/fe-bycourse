@@ -28,21 +28,28 @@ export default function LoginPage() {
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = async (data: LoginFormData) => {
-    try {
-      const result = await post("/auth/login", data, "");
+const onSubmit = async (data: LoginFormData) => {
+  try {
+    const result = await post("/auth/login", data, "");
 
-      if (result.token) {
-        localStorage.setItem("token", result.token);
-        router.push("/dashboard"); // ganti sesuai rute setelah login
+    if (result.token) {
+      localStorage.setItem("token", result.token);
+
+      // Cek apakah user sudah punya profil
+      if (result.user?.profile) {
+        router.push("/dashboard");
       } else {
-        setMessage(result.message || "Gagal login");
+        router.push("/addprofile");
       }
-    } catch (error) {
-      console.error(error);
-      setMessage("Terjadi kesalahan saat login");
+    } else {
+      setMessage(result.message || "Gagal login");
     }
-  };
+  } catch (error) {
+    console.error(error);
+    setMessage("Terjadi kesalahan saat login");
+  }
+};
+
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto mt-10">
