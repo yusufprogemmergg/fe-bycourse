@@ -76,7 +76,7 @@ const removeItem = async (cartId: number) => {
 const handleCheckout = async () => {
   const courseIds = cartCourses.map(course => course.id)
   try {
-    const res = await post('/api/order/checkout', { courseIds }, token!)
+    const res = await post('/order/checkout', { courseIds }, token!)
 
     if (res.redirectUrl) {
       toast.success('Mengalihkan ke pembayaran...')
