@@ -34,7 +34,7 @@ export default function LessonPage() {
   useEffect(() => {
     const fetchCourse = async () => {
       const token = localStorage.getItem("token") || ""
-      const res = await get(`/course/${courseId}`, token)
+      const res = await get(`/mycourse/${courseId}`, token)
       setCourse(res)
       const allLessons = res.modules.flatMap((m: Module) => m.lessons)
       const selected = allLessons.find((l: Lesson) => l.id === Number(lessonId))
@@ -57,7 +57,7 @@ export default function LessonPage() {
               {module.lessons.map((lesson) => (
                 <li key={lesson.id}>
                   <a
-                    href={`/course/${courseId}/lesson/${lesson.id}`}
+                    href={`/mycourse/${courseId}/lesson/${lesson.id}`}
                     className={`block px-2 py-1 rounded hover:bg-gray-200 ${
                       lesson.id === Number(lessonId) ? 'bg-blue-100 font-semibold' : ''
                     }`}
