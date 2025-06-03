@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { FaHeart, FaChartBar } from 'react-icons/fa';
+import { CiShoppingCart } from "react-icons/ci";
 import Image from 'next/image';
 import { get } from '@/lib/api';
 import Link from 'next/link';
@@ -66,6 +67,12 @@ useEffect(() => {
         <Link href={'/dashboard/cart'}>
         <button className="text-gray-600 hover:text-blue-600 transition">
           <FaChartBar size={20} />
+        </button>
+        </Link>
+
+        <Link href={'/dashboard/mycourse'}>
+        <button className="text-gray-600 hover:text-blue-600 transition">
+          <CiShoppingCart size={20} />
         </button>
         </Link>
 

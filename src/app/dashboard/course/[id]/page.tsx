@@ -41,17 +41,16 @@ export default function CourseDetailPage() {
   }, [])
 
   useEffect(() => {
+    const fetchCourseDetail = async () => {
+      try {
+        const res = await get(`/course/${id}`, token!)
+        setCourse(res)
+      } catch {
+        toast.error('Failed to load course')
+      }
+    }
     if (id && token) fetchCourseDetail()
   }, [id, token])
-
-  const fetchCourseDetail = async () => {
-    try {
-      const res = await get(`/course/${id}`, token!)
-      setCourse(res)
-    } catch {
-      toast.error('Failed to load course')
-    }
-  }
 
   const handleBuyCourse = async () => {
     const res = await post('/checkout', { courseId: course?.id }, token!)
