@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { get } from '@/lib/api' // axios instance kamu
-import { useSession } from 'next-auth/react'
 import ReactPlayer from 'react-player'
 
 interface Lesson {
@@ -29,12 +28,10 @@ interface Course {
 
 export default function LessonPage() {
   const { courseId, lessonId } = useParams()
-  const { data: session } = useSession()
   const [course, setCourse] = useState<Course | null>(null)
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null)
 
   useEffect(() => {
-    if (!session) return
     const fetchCourse = async () => {
       const token = localStorage.getItem("token") || ""
       const res = await get(`/course/${courseId}`, token)
@@ -44,7 +41,7 @@ export default function LessonPage() {
       setCurrentLesson(selected)
     }
     fetchCourse()
-  }, [courseId, lessonId, session])
+  }, [courseId, lessonId,])
 
   if (!course || !currentLesson) return <div>Loading...</div>
 
