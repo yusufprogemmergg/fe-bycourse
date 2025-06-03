@@ -8,8 +8,7 @@ import Image from "next/image";
 interface Course {
   id: number;
   title: string;
-  thumbnail: string | null;
-  slug: string;
+  image: string | null;
 }
 
 export default function MyCoursesPage() {
@@ -45,9 +44,9 @@ export default function MyCoursesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map((course) => (
           <div key={course.id} className="bg-white shadow rounded-lg overflow-hidden">
-            {course.thumbnail && (
+            {course.image && (
               <Image
-                src={course.thumbnail}
+                src={course.image}
                 alt={course.title}
                 className="w-full h-40 object-cover"
               />
