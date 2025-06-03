@@ -6,6 +6,7 @@ import { get } from "@/lib/api"
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
+import Link from "next/link"
 
 interface Lesson {
   id: number
@@ -77,11 +78,9 @@ export default function CourseDetailPage() {
                 <ul className="space-y-2 pl-4">
                   {module.lessons.map((lesson) => (
                     <li key={lesson.id}>
+                    <Link href={`/dashboard/coursesaya/${courseId}/lesson/${lesson.id}`} className="text-blue-600 hover:underline">
                       <p className="font-medium">{lesson.position}. {lesson.title}</p>
-                      <video controls className="w-full rounded mt-2">
-                        <source src={lesson.content} type="video/mp4" />
-                        Your browser does not support the video tag.
-                      </video>
+                    </Link>
                     </li>
                   ))}
                 </ul>

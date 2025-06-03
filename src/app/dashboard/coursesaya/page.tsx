@@ -30,7 +30,7 @@ export default function MyCoursesPage() {
   }, []);
 
   const handleStartCourse = (id: number) => {
-    router.push(`/coursesaya/${id}`);
+    router.push(`/dashboard/coursesaya/${id}`);
   };
 
   if (loading) return <div className="text-center mt-10">Memuat data...</div>;
