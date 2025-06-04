@@ -57,6 +57,13 @@ useEffect(() => {
 
       {/* Icons and Profile */}
       <div className="flex items-center gap-4">
+
+        <Link href={'/dashboard'}>
+        <button className="text-gray-600 hover:text-red-500 transition">
+          home
+        </button>
+        </Link>
+
         <Link href={'/dashboard/wishlist'}>
         <button className="text-gray-600 hover:text-red-500 transition">
           

@@ -61,7 +61,7 @@ export default function UploadPage() {
 
     if (res.course?.id) {
       setMessage("✅ Course berhasil dibuat!");
-      router.push("/mycourse");
+      router.push("/dashboard/mycourse");
     } else {
       setMessage(res.message || "❌ Gagal membuat course");
     }
