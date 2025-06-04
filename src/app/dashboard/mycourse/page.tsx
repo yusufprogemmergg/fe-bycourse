@@ -71,7 +71,7 @@ export default function MyCoursePage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">My Courses</h1>
         <Link
-          href="course/addcourse"
+          href="mycourse/addcourse"
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           + Add Course
@@ -79,7 +79,7 @@ export default function MyCoursePage() {
       </div>
 
       {courses.length === 0 ? (
-        <p>No courses found. <Link href="course/addcourse" className="text-blue-600 underline">Create one</Link>.</p>
+        <p>No courses found. <Link href="mycourse/addcourse" className="text-blue-600 underline">Create one</Link>.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map(course => (
