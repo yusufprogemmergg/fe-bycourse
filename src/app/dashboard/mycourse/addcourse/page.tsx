@@ -1,9 +1,14 @@
 'use client';
 
 import { useForm } from "react-hook-form";
-import { useState } from "react";
-import { post } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { post, get } from "@/lib/api";
 import { useRouter } from "next/navigation";
+
+type Category = {
+  id: number;
+  name: string;
+};
 
 type CourseForm = {
   title: string;
@@ -27,8 +32,21 @@ type ApiResponse<T> = {
 export default function UploadPage() {
   const router = useRouter();
   const [message, setMessage] = useState<string>("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
   const courseForm = useForm<CourseForm>();
+
+  // Ambil daftar kategori saat komponen pertama kali dimuat
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const res = await get("/categories", token);
+      if (Array.isArray(res)) {
+        setCategories(res);
+      }
+    };
+
+    fetchCategories();
+  }, [token]);
 
   const handleCourseSubmit = async (data: CourseForm) => {
     const formData = new FormData();
@@ -43,7 +61,7 @@ export default function UploadPage() {
 
     if (res.course?.id) {
       setMessage("✅ Course berhasil dibuat!");
-      router.push("/mycourse"); // redirect ke halaman daftar course
+      router.push("/mycourse");
     } else {
       setMessage(res.message || "❌ Gagal membuat course");
     }
@@ -58,7 +76,17 @@ export default function UploadPage() {
         <textarea placeholder="Description" {...courseForm.register("description")} className="border p-2 w-full" required />
         <input type="number" placeholder="Price" {...courseForm.register("price")} className="border p-2 w-full" required />
         <input type="number" placeholder="Discount (%)" {...courseForm.register("discount")} className="border p-2 w-full" />
-        <input type="number" placeholder="Category ID" {...courseForm.register("categoryId")} className="border p-2 w-full" required />
+
+        {/* Dropdown kategori */}
+        <select {...courseForm.register("categoryId")} className="border p-2 w-full" required>
+          <option value="">-- Pilih Kategori --</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+
         <input type="file" {...courseForm.register("image")} className="w-full" required />
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 w-full">Upload Course</button>
       </form>
