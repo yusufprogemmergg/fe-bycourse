@@ -33,4 +33,6 @@ export default function OAuthCallback() {
       router.push('/login')
     }
   }, [router])
+
+  return <p className="p-4 text-center">Menyelesaikan login Google...</p>
 }
