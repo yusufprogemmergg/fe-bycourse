@@ -6,12 +6,26 @@ import * as Yup from 'yup';
 import { useRouter } from 'next/navigation';
 import { post } from '@/lib/api';
 
+// ✅ Type Definitions
+type LoginFormData = {
+  email: string;
+  password: string;
+};
+
+type RegisterFormData = {
+  name: string;
+  username: string;
+  email: string;
+  password: string;
+  passwordConfirm: string;
+};
+
 export default function AuthPage() {
   const [formMode, setFormMode] = useState<'login' | 'register'>('register');
   const [message, setMessage] = useState('');
   const router = useRouter();
 
-  // LOGIN
+  // ✅ Login Schema
   const loginSchema = Yup.object().shape({
     email: Yup.string().email('Email tidak valid').required('Email wajib diisi'),
     password: Yup.string().required('Password wajib diisi'),
@@ -21,9 +35,9 @@ export default function AuthPage() {
     register: loginRegister,
     handleSubmit: handleLoginSubmit,
     formState: { errors: loginErrors, isSubmitting: isLoginSubmitting },
-  } = useForm({ resolver: yupResolver(loginSchema) });
+  } = useForm<LoginFormData>({ resolver: yupResolver(loginSchema) });
 
-  const handleLogin = async (data: any) => {
+  const handleLogin = async (data: LoginFormData) => {
     try {
       const result = await post('/auth/login', data, '');
       if (result.token) {
@@ -37,7 +51,7 @@ export default function AuthPage() {
     }
   };
 
-  // REGISTER
+  // ✅ Register Schema
   const registerSchema = Yup.object().shape({
     name: Yup.string().required('Nama wajib diisi'),
     username: Yup.string().required('Username wajib diisi'),
@@ -52,9 +66,9 @@ export default function AuthPage() {
     register: regRegister,
     handleSubmit: handleRegSubmit,
     formState: { errors: regErrors, isSubmitting: isRegSubmitting },
-  } = useForm({ resolver: yupResolver(registerSchema) });
+  } = useForm<RegisterFormData>({ resolver: yupResolver(registerSchema) });
 
-  const handleRegister = async (data: any) => {
+  const handleRegister = async (data: RegisterFormData) => {
     try {
       const result = await post('/auth/register', data, '');
       if (result.status) {
