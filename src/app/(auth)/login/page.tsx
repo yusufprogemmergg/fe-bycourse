@@ -1,178 +1,111 @@
-'use client';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as Yup from 'yup';
-import { useRouter } from 'next/navigation';
-import { post } from '@/lib/api';
+'use client'
 
-// ✅ Type Definitions
-type LoginFormData = {
-  email: string;
-  password: string;
-};
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { post } from '@/lib/api'
 
-type RegisterFormData = {
-  name: string;
-  username: string;
-  email: string;
-  password: string;
-  passwordConfirm: string;
-};
+export default function LoginPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [message, setMessage] = useState('')
 
-export default function AuthPage() {
-  const [formMode, setFormMode] = useState<'login' | 'register'>('register');
-  const [message, setMessage] = useState('');
-  const router = useRouter();
-
-  // ✅ Login Schema
-  const loginSchema = Yup.object().shape({
-    email: Yup.string().email('Email tidak valid').required('Email wajib diisi'),
-    password: Yup.string().required('Password wajib diisi'),
-  });
-
-  const {
-    register: loginRegister,
-    handleSubmit: handleLoginSubmit,
-    formState: { errors: loginErrors, isSubmitting: isLoginSubmitting },
-  } = useForm<LoginFormData>({ resolver: yupResolver(loginSchema) });
-
-  const handleLogin = async (data: LoginFormData) => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
     try {
-      const result = await post('/auth/login', data, '');
+      const result = await post('/auth/login', { email, password }, '')
       if (result.token) {
-        localStorage.setItem('token', result.token);
-        router.push(result.user?.profile ? '/dashboard' : '/addprofile');
+        localStorage.setItem('token', result.token)
+        router.push('/dashboard') // redirect ke halaman setelah login
       } else {
-        setMessage(result.message || 'Gagal login');
+        setMessage('Login gagal: ' + result.message)
       }
     } catch {
-      setMessage('Terjadi kesalahan saat login');
+      setMessage('Terjadi kesalahan saat login')
     }
-  };
+  }
 
-  // ✅ Register Schema
-  const registerSchema = Yup.object().shape({
-    name: Yup.string().required('Nama wajib diisi'),
-    username: Yup.string().required('Username wajib diisi'),
-    email: Yup.string().email('Email tidak valid').required('Email wajib diisi'),
-    password: Yup.string().min(8, 'Minimal 8 karakter').required('Password wajib diisi'),
-    passwordConfirm: Yup.string()
-      .oneOf([Yup.ref('password')], 'Konfirmasi password tidak cocok')
-      .required('Konfirmasi wajib diisi'),
-  });
-
-  const {
-    register: regRegister,
-    handleSubmit: handleRegSubmit,
-    formState: { errors: regErrors, isSubmitting: isRegSubmitting },
-  } = useForm<RegisterFormData>({ resolver: yupResolver(registerSchema) });
-
-  const handleRegister = async (data: RegisterFormData) => {
+  const handleGoogleLogin = async () => {
     try {
-      const result = await post('/auth/register', data, '');
-      if (result.status) {
-        setMessage('Berhasil daftar. Silakan login...');
-        setTimeout(() => setFormMode('login'), 1000);
-      } else {
-        setMessage(result.message || 'Gagal daftar');
+      const result = await post('/auth/oauth/google', {}, '')
+      if (result && result.url) {
+        window.location.href = result.url
       }
     } catch {
-      setMessage('Terjadi kesalahan saat daftar');
+      setMessage('Gagal login dengan Google')
     }
-  };
+  }
 
-  const handleGoogleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_BASE_API_URL}/auth/oauth/google`;
-  };
+  const handleMagicLink = async () => {
+    try {
+      const result = await post('/auth/magiclink', { email }, '')
+      setMessage(result.message || 'Cek email kamu untuk login.')
+    } catch {
+      setMessage('Gagal mengirim magic link')
+    }
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-600 to-blue-900 px-4">
-      <div className="relative w-full max-w-4xl h-[550px] overflow-hidden rounded-3xl shadow-2xl bg-white flex">
-        <div
-          className={`absolute top-0 left-0 w-[200%] h-full flex transition-transform duration-700 ease-in-out ${
-            formMode === 'login' ? '-translate-x-1/2' : 'translate-x-0'
-          }`}
-        >
-          {/* REGISTER FORM */}
-          <div className="w-1/2 p-10 flex flex-col justify-center bg-white">
-            <h2 className="text-3xl font-bold text-blue-800 mb-6 text-center">Daftar</h2>
-            <form onSubmit={handleRegSubmit(handleRegister)} className="space-y-4">
-              <input {...regRegister('name')} placeholder="Nama" className="input-style" />
-              <p className="error-text">{regErrors.name?.message}</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <form
+        onSubmit={handleLogin}
+        className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-4"
+      >
+        <h2 className="text-2xl font-bold text-center">Login</h2>
 
-              <input {...regRegister('username')} placeholder="Username" className="input-style" />
-              <p className="error-text">{regErrors.username?.message}</p>
+        {message && (
+          <div className="text-sm text-red-500 text-center">{message}</div>
+        )}
 
-              <input type="email" {...regRegister('email')} placeholder="Email" className="input-style" />
-              <p className="error-text">{regErrors.email?.message}</p>
-
-              <input type="password" {...regRegister('password')} placeholder="Password" className="input-style" />
-              <p className="error-text">{regErrors.password?.message}</p>
-
-              <input
-                type="password"
-                {...regRegister('passwordConfirm')}
-                placeholder="Konfirmasi Password"
-                className="input-style"
-              />
-              <p className="error-text">{regErrors.passwordConfirm?.message}</p>
-
-              <button type="submit" disabled={isRegSubmitting} className="submit-button">
-                {isRegSubmitting ? 'Mendaftarkan...' : 'DAFTAR'}
-              </button>
-              {message && <p className="text-center text-red-500 text-sm">{message}</p>}
-            </form>
-          </div>
-
-          {/* LOGIN FORM */}
-          <div className="w-1/2 p-10 flex flex-col justify-center bg-white">
-            <h2 className="text-3xl font-bold text-blue-800 mb-6 text-center">Masuk</h2>
-            <form onSubmit={handleLoginSubmit(handleLogin)} className="space-y-4">
-              <input type="email" {...loginRegister('email')} placeholder="Email" className="input-style" />
-              <p className="error-text">{loginErrors.email?.message}</p>
-
-              <input type="password" {...loginRegister('password')} placeholder="Password" className="input-style" />
-              <p className="error-text">{loginErrors.password?.message}</p>
-
-              <button type="submit" disabled={isLoginSubmitting} className="submit-button">
-                {isLoginSubmitting ? 'Memproses...' : 'MASUK'}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                className="submit-button bg-red-600 hover:bg-red-700 mt-2"
-              >
-                Login dengan Google
-              </button>
-
-              <p className="text-center text-sm text-blue-700">Lupa password?</p>
-              {message && <p className="text-center text-red-500 text-sm">{message}</p>}
-            </form>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Email
+          </label>
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+          />
         </div>
 
-        {/* SLIDE PANEL */}
-        <div
-          className="absolute top-0 h-full w-1/2 bg-blue-700 text-white z-10 transition-all duration-700 ease-in-out flex items-center justify-center rounded-3xl"
-          style={{
-            transform: formMode === 'login' ? 'translateX(100%)' : 'translateX(0%)',
-          }}
-        >
-          <div className="text-center px-8 space-y-4">
-            <h2 className="text-2xl font-bold">
-              {formMode === 'login' ? 'Belum punya akun?' : 'Sudah punya akun?'}
-            </h2>
-            <button
-              onClick={() => setFormMode(formMode === 'login' ? 'register' : 'login')}
-              className="bg-white text-blue-700 font-semibold px-6 py-2 rounded-full shadow hover:bg-gray-100 transition"
-            >
-              {formMode === 'login' ? 'Daftar' : 'Masuk'}
-            </button>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Password
+          </label>
+          <input
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+          />
         </div>
-      </div>
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
+        >
+          Login
+        </button>
+
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded"
+        >
+          Login dengan Google
+        </button>
+
+        <button
+          type="button"
+          onClick={handleMagicLink}
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded"
+        >
+          Kirim Magic Link ke Email
+        </button>
+      </form>
     </div>
-  );
+  )
 }
