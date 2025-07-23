@@ -2,36 +2,49 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import axios from 'axios'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export default function OAuthCallback() {
   const router = useRouter()
 
   useEffect(() => {
-    const hash = window.location.hash
-    const params = new URLSearchParams(hash.replace('#', ''))
+    const handleSession = async () => {
+      const { data, error } = await supabase.auth.getSession()
 
-    const access_token = params.get('access_token')
-
-    if (access_token) {
-      // Kirim access_token ke backend untuk proses user dan generate JWT
-      axios.post(`${process.env.NEXT_PUBLIC_BASE_API_URL}/auth/oauth/callback`, {
-        access_token,
-      })
-      .then((res) => {
-        const token = res.data.token
-        localStorage.setItem('token', token)
-        router.push('/dashboard') // Redirect ke halaman setelah login
-      })
-      .catch((err) => {
-        console.error('OAuth login error:', err)
-        alert('Gagal login dengan Google.')
+      if (error || !data.session) {
+        console.error('Gagal mendapatkan sesi:', error)
+        alert('Gagal login.')
         router.push('/login')
-      })
-    } else {
-      alert('Access token tidak ditemukan di URL.')
-      router.push('/login')
+        return
+      }
+
+      const access_token = data.session.access_token
+
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}/auth/oauth/callback`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ access_token }),
+        })
+
+        const response = await res.json()
+        localStorage.setItem('token', response.token) // Simpan token backend kamu
+        router.push('/dashboard')
+      } catch (err) {
+        console.error('Error kirim token ke backend:', err)
+        alert('Gagal login.')
+        router.push('/login')
+      }
     }
+
+    handleSession()
   }, [router])
 
   return <p className="p-4 text-center">Menyelesaikan login Google...</p>
